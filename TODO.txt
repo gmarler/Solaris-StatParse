@@ -1,0 +1,14 @@
+
+Stories
+- open variations
+  - bare filename: Look in datadir (if defined) and then '.'
+  - relative filepath: Look in '.'
+  - absolute filepath
+- Time Ranges
+  - closed
+  - partially open
+- Caching
+  - timestamp => file position
+- Locale issues
+  - timestamps based on???
+
