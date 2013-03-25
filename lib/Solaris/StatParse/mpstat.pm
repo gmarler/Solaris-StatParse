@@ -14,15 +14,46 @@ has 'date_regex' => ( is => 'ro',
                       isa => 'RegexpRef',
                       default =>
                         sub {
-                          qr{^ (?:Mon|Tue|Wed|Thu|Fri|Sat|Sun) \s+
-                               (Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)
-                               \s+ (\d+) \s+ (\d+):(\d+):(\d+) \s+
-                               \w+ \s+ (\d{4})
-                               \n
-                             $
-                            }x;
+  qr{^ (?:Mon|Tue|Wed|Thu|Fri|Sat|Sun) \s+               # Weekday name
+       (?<month_name>Jan|Feb|Mar|Apr|May|Jun|
+        Jul|Aug|Sep|Oct|Nov|Dec) \s+                     # Month name
+       (?<month_day>\d+) \s+
+       (?<hour>\d+):(?<minute>\d+):(?<second>\d+) \s+
+       \w+ \s+ (?<year>\d{4})
+       \n
+     $
+    }x;
                         },
                     );
+
+my $date_regexes = {
+  # TODO: Use named captures
+  # LANG=C
+  "C" =>
+  qr{^ (?:Mon|Tue|Wed|Thu|Fri|Sat|Sun) \s+               # Weekday name
+       (?<month_name>Jan|Feb|Mar|Apr|May|Jun|
+        Jul|Aug|Sep|Oct|Nov|Dec) \s+                     # Month name
+       (?<month_day>\d+) \s+
+       (?<hour>\d+):(?<minute>\d+):(?<second>\d+) \s+
+       \w+ \s+ (?<year>\d{4})
+       \n
+     $
+    }x,
+  # LANG=en_US.UTF-8
+  "en_US.UTF-8" =>
+  qr{^ (?:Monday|Tuesday|Wednesday|
+          Thursday|Friday|Saturday|Sunday), \s+          # Weekday name
+       (?<month_name>January|February|March|April|May|
+        June|July|August|September|October|November|
+        December) \s+                                    # Month name
+       (?<month_day>\d+), \s+
+       (?<year>\d{4}) \s+
+       (?<hour>\d+):(?<minute>\d+):(?<second>\d+) \s+
+       (?<am_pm>\w+) \s+ \w+
+       \n
+     $
+    }x,
+};
 
 my %months = ( 'Jan'       => 1, 'January'   => 1,
                'Feb'       => 2, 'February'  => 2,
@@ -49,12 +80,12 @@ sub parse_time {
   while (my $line = <$fh>) {
     if ($line =~ m/$re/smx) {
       $count++;
-      my ($month,$day,$hour,$minute,$second,$year) =
-        ($months{$1},$2,$3,$4,$5,$6);
 
-      my $dt = DateTime->new( month => $month, day => $day, year => $year,
-                              hour => $hour, minute => $minute,
-                              second => $second);
+      my $dt = DateTime->new( month => $months{$+{month_name}},
+                              day => $+{month_day},
+                              year => $+{year},
+                              hour => $+{hour}, minute => $+{minute},
+                              second => $+{second});
       print DateTime::Format::HTTP->format_datetime($dt) . "\n";
     }
   }
