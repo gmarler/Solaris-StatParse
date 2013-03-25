@@ -6,7 +6,7 @@ package Solaris::StatParse::mpstat;
 use Moose;
 use IO::File;
 use DateTime;
-use DateTime::Format::HTTP;
+use DateTime::Format::Strptime;
 
 has 'file'       => ( is => 'rw',
                       isa => 'Str', );
@@ -40,6 +40,14 @@ my $date_regexes = {
      $
     }x,
   # LANG=en_US.UTF-8
+  # This requires the use of DateTime::Format::Strptime, not a regex:
+  # 
+  # my $strp = DateTime::Format::Strptime->new(
+  #   pattern => '%A, %B %d, %Y %r',
+  #   on_error => 'undef',
+  # );
+  #
+  # my $dt = $strp->parse_datetime($s);
   "en_US.UTF-8" =>
   qr{^ (?:Monday|Tuesday|Wednesday|
           Thursday|Friday|Saturday|Sunday), \s+          # Weekday name
